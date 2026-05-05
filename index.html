@@ -3,7 +3,8 @@
 <head>
 <script>
 // Apps Script Web App inject — doGet tarafından string replace ile doldurulur
-var __WEB_APP_URL__ = 'https://script.google.com/macros/s/AKfycbzKKLlIEx3-n5u0eguUgu1t1w1Rq3JjuUXW_PBDNKv2zLpWkkDcxxJltuv6TGeJiQ/exec';
+// GitHub'dan açılınca %%WEB_APP_URL%% kalır → aşağıdaki resolver devreye girer
+var __WEB_APP_URL__ = '%%WEB_APP_URL%%';
 </script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes">
@@ -2018,23 +2019,51 @@ html,body{overflow-x:hidden;-webkit-overflow-scrolling:touch}
 // ════════════════════════════════════════════════
 // ⚙️  APPS SCRIPT URL YÖNETİMİ
 // ════════════════════════════════════════════════
-let APPS_SCRIPT_URL = '%%WEB_APP_URL%%'; 
+// ═══ APPS SCRIPT URL — AKILLI ÇÖZÜMLEME ═══
+// Öncelik: 1) Apps Script inject  2) ?url= parametresi  3) localStorage
+(function() {
+  var _LS_KEY = 'ISG_APPS_SCRIPT_URL';
+  var injected = (typeof __WEB_APP_URL__ !== 'undefined' &&
+                  __WEB_APP_URL__ && __WEB_APP_URL__.indexOf('%%') === -1)
+                 ? __WEB_APP_URL__ : '';
 
-if (APPS_SCRIPT_URL.indexOf('%%') !== -1 || !APPS_SCRIPT_URL) {
-  APPS_SCRIPT_URL = localStorage.getItem('ISG_APPS_SCRIPT_URL') || '';
-}
+  // 1. Apps Script inject
+  if (injected) { window._RESOLVED_URL = injected; return; }
+
+  // 2. URL parametresi (?url= veya ?apps_url=)
+  try {
+    var params = new URLSearchParams(window.location.search);
+    var urlParam = params.get('url') || params.get('apps_url') || params.get('script');
+    if (urlParam && urlParam.startsWith('https://script.google.com')) {
+      try { localStorage.setItem(_LS_KEY, urlParam); } catch(e) {}
+      window._RESOLVED_URL = urlParam;
+      return;
+    }
+  } catch(e) {}
+
+  // 3. localStorage
+  try {
+    var stored = localStorage.getItem(_LS_KEY);
+    if (stored && stored.startsWith('https://')) { window._RESOLVED_URL = stored; return; }
+  } catch(e) {}
+
+  window._RESOLVED_URL = '';
+})();
+
+let APPS_SCRIPT_URL = window._RESOLVED_URL || '';
 
 globalThis.urlBaslat = function() {
-  // localStorage'dan URL yükle
-  try {
-    var saved = localStorage.getItem('ISG_APPS_SCRIPT_URL');
-    if (saved && saved.startsWith('https://')) APPS_SCRIPT_URL = saved;
-  } catch(e) {}
+  // Çözümlenen URL varsa input'a yaz ve bağlantıyı kur
+  if (!APPS_SCRIPT_URL) {
+    try {
+      var saved = localStorage.getItem('ISG_APPS_SCRIPT_URL');
+      if (saved && saved.startsWith('https://')) APPS_SCRIPT_URL = saved;
+    } catch(e) {}
+  }
   var inp = document.getElementById('appsScriptInput');
   if (APPS_SCRIPT_URL && inp) {
     inp.value = APPS_SCRIPT_URL;
-    if(typeof cfgDurumGuncelle === 'function') cfgDurumGuncelle(true);
-    // URL kayıtlıysa otomatik senkronize et
+    if (typeof cfgDurumGuncelle === 'function') cfgDurumGuncelle(true);
     setTimeout(sheettenSenkronize, 800);
   }
 }
