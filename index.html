@@ -4,9 +4,12 @@
 <script>
 // Apps Script Web App inject — doGet tarafından string replace ile doldurulur
 // GitHub'dan açılınca %%WEB_APP_URL%% kalır → aşağıdaki resolver devreye girer
-var __WEB_APP_URL__ = 'https://script.google.com/macros/s/AKfycbyV3v9kMXLPWi2wywcFcp_TbpX4qkaQTGsQt3MqZySIACkQWPoGgx7NkytJUIQ4SSxG/exec';
+var __WEB_APP_URL__ = '%%WEB_APP_URL%%';
 </script>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes">
 <title>ISG Denetim Sistemi – Şehitkamil İlçe MEM</title>
 
@@ -544,18 +547,22 @@ body{font-family:Arial,sans-serif;background:var(--bg);color:var(--txt);min-heig
 }
 .kat-header:first-of-type{margin-top:0;}
 .madde-row{
-  display:grid;grid-template-columns:1fr 88px 88px 72px 80px;
+  display:grid;
+  grid-template-columns:1fr 88px 88px 72px 80px;
+  grid-auto-rows:auto;
   gap:4px;padding:8px 10px;border-bottom:1px solid #e8ecf2;
   align-items:center;background:#fff;transition:background .15s;
-  flex-wrap:wrap;
 }
 .madde-row .foto-alan{
   grid-column: 1 / -1;
+  display:flex;
 }
 .madde-row .madde-not-alan{
   grid-column: 1 / -1;
-  display: block !important;
-  width: 100%;
+  display:block;
+  width:100%;
+  box-sizing:border-box;
+}
 }
 .madde-row:last-child{border:none;border-radius:0 0 8px 8px;}
 .madde-row:hover{background:#fafbfd;}
@@ -3278,12 +3285,11 @@ globalThis.secim = function(el, no, val) {
     }
     fotoDiv.style.display = 'flex';
     _fotoPrevGuncelle(no);
-    // Not alanı — grid-column inline olarak verilmeli, yoksa grid context'te görünmez
+    // Not alanı
     if (!notDiv) {
       notDiv = document.createElement('div');
       notDiv.className = 'madde-not-alan';
       notDiv.dataset.no = no;
-      notDiv.style.cssText = 'grid-column:1/-1;display:block;width:100%;margin-top:4px;background:#f0f4fb;border-radius:8px;border:1px solid #c5d4ed;padding:7px 10px;box-sizing:border-box;';
       const mevcut = notes[no] || '';
       notDiv.innerHTML =
         '<label style="display:block;font-size:10px;font-weight:700;color:#1a4b8c;margin-bottom:4px">📝 Uzman Notu (raporda mevzuat altına eklenecek)</label>' +
