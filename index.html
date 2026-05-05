@@ -4,7 +4,7 @@
 <script>
 // Apps Script Web App inject — doGet tarafından string replace ile doldurulur
 // GitHub'dan açılınca %%WEB_APP_URL%% kalır → aşağıdaki resolver devreye girer
-var __WEB_APP_URL__ = 'https://script.google.com/macros/s/AKfycbzKKLlIEx3-n5u0eguUgu1t1w1Rq3JjuUXW_PBDNKv2zLpWkkDcxxJltuv6TGeJiQ/exec';
+var __WEB_APP_URL__ = '%%WEB_APP_URL%%';
 </script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes">
@@ -554,7 +554,8 @@ body{font-family:Arial,sans-serif;background:var(--bg);color:var(--txt);min-heig
 }
 .madde-row .madde-not-alan{
   grid-column: 1 / -1;
-  display:block;
+  display: block !important;
+  width: 100%;
 }
 .madde-row:last-child{border:none;border-radius:0 0 8px 8px;}
 .madde-row:hover{background:#fafbfd;}
@@ -2018,14 +2019,14 @@ html,body{overflow-x:hidden;-webkit-overflow-scrolling:touch}
   </div><!-- /panel -->
 </div><!-- /overlay -->
 
-
 <script>
 // ════════════════════════════════════════════════
 // ⚙️  APPS SCRIPT URL YÖNETİMİ
 // ════════════════════════════════════════════════
-// ═══ APPS SCRIPT URL — AKILLI ÇÖZÜMLEME ═══
-// Öncelik: 1) Apps Script inject  2) ?url= parametresi  3) localStorage
+// ═══ APPS SCRIPT URL — SABİT GÖMÜLÜ + AKILLI ÇÖZÜMLEME ═══
+// Öncelik: 1) Apps Script inject  2) ?url= parametresi  3) localStorage  4) Gömülü URL
 (function() {
+  var _GOMULU = 'https://script.google.com/macros/s/AKfycbyNCaJ-6EqO1C558AS2zAvz_WmNhjHE-PYDO7es7PxqW_e7ATC6qRCwe8cjs1OBJKmh/exec';
   var _LS_KEY = 'ISG_APPS_SCRIPT_URL';
   var injected = (typeof __WEB_APP_URL__ !== 'undefined' &&
                   __WEB_APP_URL__ && __WEB_APP_URL__.indexOf('%%') === -1)
@@ -2051,7 +2052,8 @@ html,body{overflow-x:hidden;-webkit-overflow-scrolling:touch}
     if (stored && stored.startsWith('https://')) { window._RESOLVED_URL = stored; return; }
   } catch(e) {}
 
-  window._RESOLVED_URL = '';
+  // 4. Gömülü URL — her zaman çalışır
+  window._RESOLVED_URL = _GOMULU;
 })();
 
 let APPS_SCRIPT_URL = window._RESOLVED_URL || '';
@@ -3420,14 +3422,17 @@ globalThis.goStep = function(n) {
   if (n < 0 || n >= TOTAL_STEPS) return;
   currentStep = n;
   updateUI();
-  document.getElementById('fScroll').scrollTo({top:0, behavior:'smooth'});
+  // Panel scroll eder (fScroll değil)
+  var panel = document.getElementById('panel');
+  if (panel) panel.scrollTo({top:0, behavior:'smooth'});
 }
 
 globalThis.nextStep = function() {
   if (currentStep < TOTAL_STEPS - 1) {
     currentStep++;
     updateUI();
-    document.getElementById('fScroll').scrollTo({top:0, behavior:'smooth'});
+    var panel = document.getElementById('panel');
+    if (panel) panel.scrollTo({top:0, behavior:'smooth'});
   }
 }
 
@@ -3435,7 +3440,8 @@ globalThis.prevStep = function() {
   if (currentStep > 0) {
     currentStep--;
     updateUI();
-    document.getElementById('fScroll').scrollTo({top:0, behavior:'smooth'});
+    var panel = document.getElementById('panel');
+    if (panel) panel.scrollTo({top:0, behavior:'smooth'});
   }
 }
 
